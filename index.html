@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Listening Challenge</title>
+<style>
+:root{
+  --bg: #fbf6ee; --card: #fff; --muted: #6b5e4a; --accent: #ff9800; --brown: #6b3f25;
+  --success: #4caf50; --danger: #e53935; --hover-glow: #fbd380; --selected-blue: #0d47a1;
+}
+body{ background: var(--bg); font-family: "Times New Roman", serif; display:flex; justify-content:center; padding:20px 12px; }
+.app{ max-width: 860px; width: 100%; background: var(--card); border-radius:14px; padding:24px; box-shadow:0 8px 30px rgba(30,30,30,0.08); }
+.logo{text-align:center; margin-bottom:4px;}
+.logo .title{ display:inline-block; padding:8px 16px; border-radius:10px; background:linear-gradient(90deg,#fffafa,#fff1dd); font-weight:bold; font-size:1.45rem; }
+.top-meta{text-align:center;margin-bottom:12px;}
+.progress{color:var(--muted);font-size:1.15rem;}
+.set-label{font-weight:bold;font-size:1.25rem;margin-top:4px;}
+.timer-box{ display:flex; flex-direction:column; align-items:center; gap:12px; margin-bottom:12px; }
+.countdown{ background:#fff7ec; border:1px solid #f0d7b8; padding:14px 18px; border-radius:10px; width:220px; text-align:center; font-weight:bold; color:var(--brown); font-size:1.25rem; }
+.play-button{ padding:10px 18px; border-radius:8px; border:none; background: var(--brown); color:white; cursor:pointer; font-size:1.15rem; font-family: "Times New Roman", serif; }
+.play-button:hover{box-shadow:0 0 10px var(--hover-glow);}
+#skipCountdownBtn{ background:#d84315; font-size:1rem; padding:9px 16px; }
+.play-instruction{text-align:center; color:#d84315; font-weight:bold; font-size:1.3rem; margin-top:8px; margin-bottom:0px;}
+.mc-section{ margin-top:0px; }
+.per-q{ margin-bottom:10px; }
+.mc-question{font-weight:bold;margin-bottom:4px;font-size:1.2rem;}
+.mc-options-box{ background:linear-gradient(180deg,#ffffff,#fff4e6); border:1px solid #ecd7b8; border-radius:10px; padding:10px 14px; display:flex; flex-direction:column; gap:4px; box-shadow:0 3px 6px rgba(0,0,0,0.03); font-size:1.18rem; }
+.mc-option-wrapper{ display:flex; align-items:flex-start; gap:6px; padding:6px 8px; border-radius:6px; cursor:pointer; transition:0.3s; color:#000; font-family: "Times New Roman", serif; }
+.mc-option-wrapper:hover{box-shadow:0 0 8px var(--hover-glow);}
+.mc-option-wrapper.disabled{cursor:not-allowed;opacity:0.6;}
+.mc-option-wrapper input[type="radio"]{ margin-top:2px; accent-color: var(--selected-blue); }
+.next-row{ display:flex; justify-content:center; align-items:center; margin-top:18px; }
+.next-btn{ background: linear-gradient(135deg, #ff8f00, #e65100); color: white; border: none; padding: 14px 40px; border-radius: 50px; cursor: pointer; font-weight: bold; font-size: 1.3rem; font-family: "Times New Roman", serif; box-shadow: 0 8px 28px rgba(255, 111, 0, 0.45); transition: all 0.35s ease; }
+.next-btn:hover{ transform: translateY(-5px); box-shadow: 0 15px 40px rgba(255, 111, 0, 0.6); }
+.next-btn.submit { background: linear-gradient(135deg, #e65100, #c62828); box-shadow: 0 8px 28px rgba(198,40,40,.5); }
+.next-btn.submit:hover { box-shadow: 0 15px 40px rgba(198,40,40,.7); }
+.audio-ribbon{display:none; margin:20px auto; max-width:680px; width:100%; text-align:center; font-weight:bold; color:#6b3f25; font-size:1.1rem;}
+.audio-ribbon > div{ margin-bottom:10px; color:#d84315; }
+.audio-ribbon audio{ width:100%; max-width:600px; margin:0 auto; display:block; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+.saved-notify{ position:fixed; top:18px; right:18px; background:var(--success); color:white; padding:10px 14px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.15); opacity:0; transition:all 0.3s ease; z-index:9999; font-weight:bold; font-size:0.95rem; }
+.saved-notify.show{opacity:1;}
+#resultOverlay{ display:none; max-width:980px; margin:30px auto 0; padding:28px; background:#fffbe0; border-radius:14px; box-shadow:0 12px 40px rgba(30,30,30,0.12); font-family:"Times New Roman", serif; }
+.result-box{ border:1px solid #ddd; border-radius:12px; padding:18px; margin-bottom:22px; background:#fff; }
+.transcription{ margin:15px 0; padding:16px; background:#fdf8e1; border-left:5px solid var(--accent); border-radius:8px; font-size:1.15rem; line-height:1.9; direction:rtl; text-align:right; color:#222; }
+.transcription span.evidence-0 { background:#fff34d; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(255,243,77,0.7); }
+.transcription span.evidence-1 { background:#a7f3d0; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(167,243,208,0.7); color:#065f46; }
+.transcription span.evidence-2 { background:#fda4af; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(253,164,175,0.7); color:#881337; }
+.transcription span.evidence-3 { background:#93c5fd; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(147,197,253,0.7); color:#1e40af; }
+.transcription span.evidence-4 { background:#d8b4fe; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(216,180,254,0.7); color:#6b21a8; }
+.transcription span.evidence-5 { background:#fcd34d; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(252,211,77,0.7); color:#92400e; }
+.transcription span.evidence-6 { background:#fecaca; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(254,202,202,0.7); color:#991b1b; }
+.transcription span.evidence-7 { background:#bfdbfe; padding:2px 6px; border-radius:6px; font-weight:bold; box-shadow:0 0 10px rgba(191,219,254,0.7); color:#1e40af; }
+.result-question{ font-weight:bold; font-size:1.22rem; margin:18px 0 10px; color:#333; }
+.result-option{ padding:10px 14px; margin:6px 0; border-radius:8px; font-size:1.15rem; display:flex; align-items:center; gap:10px; background:#f9f9f9; border:2px solid transparent; }
+.result-option.correct{ background:#d8f6df; border:2px solid #2e8b35; color:#0b5b2b; font-weight:bold; position:relative; padding-right:90px; }
+.result-option.correct::after{ content:"Correct!"; position:absolute; right:14px; font-size:18px; }
+.result-option.wrong{ background:#fce8e8; border:2px solid #c73232; color:#8b0000; font-weight:bold; position:relative; padding-right:90px; }
+.result-option.wrong::after{ content:"Wrong!"; position:absolute; right:14px; font-size:18px; }
+.result-option.your{ color:#d84315; font-weight:bold; }
+.score-box{ font-weight:bold; font-size:1.6rem; margin:0 0 30px 0; padding:20px; border-radius:12px; background:linear-gradient(90deg,#fff8b0,#ffe680); text-align:center; box-shadow:0 6px 20px rgba(255,200,0,0.25); }
+#congratsOverlay{ display:none; position:fixed; inset:0; background: rgba(0,0,0,0.45); z-index:10000; align-items:center; justify-content:center; }
+#congratsCard{ max-width:720px; width:90%; background: linear-gradient(135deg,#ffffff,#fff8f0); border-radius:18px; padding:28px; text-align:center; box-shadow: 0 20px 60px rgba(0,0,0,0.25); animation: popIn 400ms ease; }
+@keyframes popIn{ from{transform:translateY(10px) scale(.98); opacity:0} to{transform:none; opacity:1} }
+#congratsCard h1{ font-size:2rem; margin:6px 0; color:#2e6b3e; font-weight:bold; }
+#seeResultsBtn{ display:inline-block; padding:14px 22px; border-radius:12px; background: linear-gradient(90deg,#ffb74d,#ff8a65); color:white; font-weight:bold; font-size:1.1rem; border:none; cursor:pointer; box-shadow:0 8px 30px rgba(255,140,65,0.25); }
+#seeResultsBtn:hover{ transform:translateY(-3px); }
+.glow-instruction{ text-align:center; font-weight:bold; font-size:1.25rem; color:#6b3f25; text-shadow: 0 0 6px #ff8f00; }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="logo"><div class="title">Listening Challenge</div></div>
+  <div class="top-meta">
+    <div class="progress" id="progressText"></div>
+    <div class="set-label" id="setLabel"></div>
+  </div>
+  <div class="timer-box">
+    <div class="countdown" id="countdownBox">Loading...</div>
+    <button id="skipCountdownBtn" class="play-button">Skip Countdown</button>
+  </div>
+  <div id="studyInstruction" class="glow-instruction">Study the Questions</div>
+  <div style="text-align:center; margin-top:12px;">
+    <button id="playBtn" class="play-button" style="display:none;">Play Audio</button>
+    <div id="audioNote" class="play-instruction" style="display:none;">
+      You will hear the recording <strong>twice</strong>
+    </div>
+  </div>
+  <div class="audio-ribbon" id="audioRibbon">
+    <div>Now playing... (beep → audio → beep → audio)</div>
+    <audio id="audioPlayer" controls preload="auto"></audio>
+  </div>
+  <audio id="beepAudio" src="beep.wav" preload="auto"></audio>
+  <div class="mc-section" id="mcSection"></div>
+  <div class="next-row">
+    <button id="nextBtn" class="next-btn">Next Challenge</button>
+  </div>
+</div>
+
+<div id="congratsOverlay">
+  <div id="congratsCard">
+    <img src="https://media.giphy.com/media/111ebonMs90YLu/giphy.gif" alt="celebrate" style="max-width:220px;margin:0 auto 12px auto;display:block;" />
+    <h1>Challenge Completed Successfully!</h1>
+    <p>Great job! Click below to see your detailed results.</p>
+    <button id="seeResultsBtn">See Results</button>
+  </div>
+</div>
+
+<div id="resultOverlay"></div>
+<div class="saved-notify" id="savedNotify">Answer saved</div>
+
+<script>
+const studySecondsPerQuestion = 15;
+let currentPage = 1;
+let countdownInterval = null;
+let timeLeft = 0;
+let audioSequenceActive = false;
+let abortAudio = false;
+const userAnswers = {};
+const letters = ["A", "B", "C", "D"];
+
+const el = {
+  progressText: document.getElementById("progressText"),
+  setLabel: document.getElementById("setLabel"),
+  countdownBox: document.getElementById("countdownBox"),
+  skipCountdownBtn: document.getElementById("skipCountdownBtn"),
+  playBtn: document.getElementById("playBtn"),
+  mcSection: document.getElementById("mcSection"),
+  nextBtn: document.getElementById("nextBtn"),
+  audioRibbon: document.getElementById("audioRibbon"),
+  audioPlayer: document.getElementById("audioPlayer"),
+  beepAudio: document.getElementById("beepAudio"),
+  savedNotify: document.getElementById("savedNotify"),
+  audioNote: document.getElementById("audioNote"),
+  resultOverlay: document.getElementById("resultOverlay"),
+  studyInstruction: document.getElementById("studyInstruction"),
+  congratsOverlay: document.getElementById("congratsOverlay"),
+  seeResultsBtn: document.getElementById("seeResultsBtn")
+};
+
+const listeningSets = [
+  {
+    audio: "01.wav",
+    transcription: `این می‌تواند صحنه پایانی برجام باشد. پیش‌نویس قطعنامه‌ای که جلوی اسنپ‌بک و بازگشت تحریم‌ها را می‌گرفت، به رأی گذاشته شد. پیش‌نویسی که کره جنوبی به عنوان رئیس دوره‌ای شورای امنیت ارائه کرد، رأی نیاورد و حالا بدون امکان وتو، تحریم‌های شورای امنیت بعد از تاریخ ۵ مهر بازمی‌گردد. برخی تحلیلگران از امکان مذاکرات دقیقه نود پیش از موعد اجرای رسمی تحریم‌ها حرف می‌زنند و برخی دیگر با استناد به این جدیدترین مصاحبه ماکرون که گفته اسنپ‌بک قطعی است، در دیپلماسی را کاملاً بسته می‌دانند. اندیشکده‌های غربی، از جمله استیمسون سنتر آمریکا یا آیریس فرانسه می‌گویند که بازگشت تحریم‌های سازمان ملل اثر اقتصادی قابل‌توجهی برای ایران ندارد. چراکه پیش‌تر سنگین‌ترین تحریم‌ها توسط آمریکا و اروپا علیه ایران اعمال شده. سید عباس عراقچی:'' تحریم‌های یکجانبه آمریکا که الان وجود داره، از تحریم‌های شورای امنیت به مراتب بزرگتره.'' منابع دیگری همچون "سکیوریتی کانسل ریپورت" که به عنوان منبع اصلی برای فهم موضوعات مربوط به شورای امنیت برای دیپلمات‌ها و سازمان‌های تحقیقاتی شناخته می‌شود، درباره اسنپ‌بک می‌نویسد: اثرش از نظر عملی بسیار محدودتر از تصویری‌ست که برخی رسانه‌ها یا بازیگران سیاسی ارائه می‌کنند. دود دیگری که ممکن است بعد از فعال شدن اسنپ‌بک در چشم غرب برود، در موضع‌گیری برخی مقامات ایرانی دیده می‌شود. این جدیدترین اظهارنظر معاون وزیر امور خارجه ایران است. ''ممکن است همکاری و توافق اخیر ایران با آژانس بین‌المللی انرژی اتمی هم تحت تأثیر اقدام خصمانه اروپا قرار بگیرد''. اما اگر بخواهیم در ماجرای فعال شدن اسنپ‌بک، نیمه پر لیوان را ببینیم، باید گفت با مصرف شدن اسنپ‌بک از سوی اروپا، دیگر حربه‌ای برای شرطی‌سازی اقتصاد ایران در دست غرب نیست. یعنی اروپا و آمریکا تمام کارت‌های خود را تمام کردند از سویی بیشتر فروش و صادرات نفت ایران، سیستم بانکی و تجارت خارجی پیشاپیش هدف تحریم‌های آمریکا و اروپا بوده و بازگشت تحریم‌های سازمان ملل تأثیر اقتصادی افزوده برای ایران ندارد.`,
+    questions: [
+      { id: "1-1", question: "1. Which factor is presented as the decisive procedural trigger for the return of UN Security Council sanctions?",
+        keyphrases: ["پیش‌نویس قطعنامه‌ای که جلوی اسنپ‌بک و بازگشت تحریم‌ها را می‌گرفت، به رأی گذاشته شد. پیش‌نویسی که کره جنوبی به عنوان رئیس دوره‌ای شورای امنیت ارائه کرد، رأی نیاورد و حالا بدون امکان وتو، تحریم‌های شورای امنیت بعد از تاریخ ۵ مهر بازمی‌گردد."],
+        options: [
+          { answer: "The failure of a draft resolution intended to halt the snapback mechanism.", correct:true },
+          { answer: "The expiration of JCPOA timelines combined with Iran’s reduced compliance.", correct:false },
+          { answer: "A coordinated political decision by European states to reimpose sanctions.", correct:false },
+          { answer: "The Security Council’s reinterpretation of enforcement authority.", correct:false }
+        ]
+      },
+      { id: "1-2", question: "2. How does the passage reconcile apparently opposing claims about the impact of snapback sanctions?",
+        keyphrases: ["اندیشکده‌های غربی، از جمله استیمسون سنتر آمریکا یا آیریس فرانسه می‌گویند که بازگشت تحریم‌های سازمان ملل اثر اقتصادی قابل‌توجهی برای ایران ندارد. چراکه پیش‌تر سنگین‌ترین تحریم‌ها توسط آمریکا و اروپا علیه ایران اعمال شده"],
+        options: [
+          { answer: "By arguing that UN sanctions will replace U.S. sanctions over time.", correct:false },
+          { answer: "By emphasizing symbolic consequences while downplaying material ones.", correct:true },
+          { answer: "By asserting that economic effects are delayed rather than immediate.", correct:false },
+          { answer: "By suggesting that sanctions will matter only if Iran alters its policies.", correct:false }
+        ]
+      },
+      { id: "1-3", question: "3. Which element in the passage most clearly signals a shift from uncertainty to inevitability regarding the snapback?",
+        keyphrases: ["با استناد به این جدیدترین مصاحبه ماکرون که گفته اسنپ‌بک قطعی است، در دیپلماسی را کاملاً بسته می‌دانند"],
+        options: [
+          { answer: "The reference to think tank analyses minimizing economic damage.", correct:false },
+          { answer: "Macron’s public statement declaring the snapback unavoidable.", correct:true },
+          { answer: "The lack of a veto mechanism in the Security Council process.", correct:false },
+          { answer: "Iran’s warning about revisiting cooperation with the IAEA.", correct:false }
+        ]
+      },
+      { id: "1-4", question: "4. What is the strategic paradox highlighted in the “half-full glass” argument?",
+        keyphrases: ["با مصرف شدن اسنپ‌بک از سوی اروپا، دیگر حربه‌ای برای شرطی‌سازی اقتصاد ایران در دست غرب نیست"],
+        options: [
+          { answer: "The snapback weakens Iran diplomatically while strengthening it economically.", correct:false },
+          { answer: "Economic pressure accelerates Iran’s reintegration into global markets.", correct:false },
+          { answer: "Sanctions increase leverage but decrease diplomatic credibility.", correct:false },
+          { answer: "The return of UN sanctions reduces Western influence rather than increasing it.", correct:true }
+        ]
+      }
+    ]
+  },
+  {
+    audio: "02.wav",
+    transcription: `سه روز پیش بود که گروهی از حامیان فلسطین در ترکیه مراسم اعدام نمادین نتانیاهو، نخست وزیر رژیم صهیونیستی را اجرا کردند. مراسمی که تصاویر آن این بار در حساب‌های کاربری مرتبط با شبکه آی ۲۴ نیوز رژیم صهیونیستی در چندین سکوی مجازی منتشر شده، توسط یک گروه هکری ناشناس. همراه با تصاویر دیگری از شهدای مقاومت و با پیامی از طرف عزالدین الحداد، فرمانده ارشد نظامی حماس، روی تصویر تشییع یکی از نظامیان به هلاکت رسیده صهیونیست که مقاومت هر روز قوی‌تر می‌شود و نابودی رژیم صهیونیستی نزدیک است. این گروه هکری ناشناس این پیام را هم رسانده که حماس را با ریشه‌ای که در واقعیت‌های تاریخی و انسانی مردم فلسطین دارد، نمی‌توان از بین برد. صهیونیست‌ها در رسانه‌هایشان می‌گویند در دو سالی که از طوفان الاقصی گذشته، رژیم صهیونیستی با موجی از نفوذهای سایبری و افشای اطلاعات حساس مواجه بوده. در هفته‌های اخیر حتی سه وزیر صهیونیست هدف حمله سایبری قرار گرفتند. شبکه‌های تلویزیونی این رژیم مدعی هستند حملات سایبری از طرف ایران هدایت می‌شود. منشأ این حملات سایبری بنابر ارزیابی‌ها از ایران است که با پیامک، تماس‌های تلفنی و ویدیویی برای نفوذ به تلفن‌های همراه مردم و مقامات تلاش می‌کنند. باعث شرمساری است که کاتس، وزیر جنگ ما به یکی از این تماس‌های ویدیویی پاسخ داده. جنگ با ایرانی‌ها در میدان آرام شده اما در فضای سایبری ایرانی‌ها یک لحظه هم متوقف نمی‌شوند. رقیه هویدا، خبرگزاری صدا و سیمای`,
+    questions: [
+      { id: "2-1", question: "1. Why does the report emphasize that the images were published on accounts linked to i24 News rather than on unknown platforms?",
+        keyphrases: ["مراسمی که تصاویر آن این بار در حساب‌های کاربری مرتبط با شبکه آی ۲۴ نیوز رژیم صهیونیستی در چندین سکوی مجازی منتشر شده"],
+        options: [
+          { answer: "To highlight the irony that Israeli-linked media channels were used to spread hostile content", correct:true },
+          { answer: "To suggest that the images were officially endorsed by Israeli media", correct:false },
+          { answer: "To demonstrate the technical sophistication of Turkish activists", correct:false },
+          { answer: "To show coordination between Hamas and international broadcasters", correct:false }
+        ]
+      },
+      { id: "2-2", question: "2. Which statement best captures the distinction made in the passage between messages attributed to Hamas leadership and those attributed to the anonymous hacking group?",
+        keyphrases: ["مقاومت هر روز قوی‌تر می‌شود و نابودی رژیم صهیونیستی نزدیک است. این گروه هکری ناشناس این پیام را هم رسانده که حماس را با ریشه‌ای که در واقعیت‌های تاریخی و انسانی مردم فلسطین دارد، نمی‌توان از بین برد"],
+        options: [
+          { answer: "Hamas focuses on military threats, while hackers focus on media manipulation", correct:false },
+          { answer: "Hamas communicates through official speeches, while hackers rely on anonymous leaks", correct:false },
+          { answer: "Hamas targets Israeli civilians, while hackers target government officials", correct:false },
+          { answer: "Hamas delivers ideological messages, while hackers emphasize historical legitimacy", correct:true }
+        ]
+      },
+      { id: "2-3", question: "3. What conclusion do Israeli media outlets, as cited in the passage, draw from the combination of cyber incidents described?",
+        keyphrases: ["حملات سایبری از طرف ایران هدایت می‌شود"],
+        options: [
+          { answer: "Cyberattacks have replaced conventional warfare entirely", correct:false },
+          { answer: "Iran’s involvement is inferred from both the scale of attacks and the methods used", correct:true },
+          { answer: "Internal security failures are the primary cause of recent breaches", correct:false },
+          { answer: "Cyber operations are independent actions by non-state actors", correct:false }
+        ]
+      }
+    ]
+  },
+  {
+    audio: "03.wav",
+    transcription: `به‌طور مشخص، آقای محمود علوی، وزیر اطلاعات، با کمال تأسف ایشون حدود سه هفته پیش یه سخنرانی کردن و در طی اون سخنرانی، درویشی رو معادل شیطان‌پرستی به صراحت معرفی کردن و گفتن معلمین مدارس بین ۶ سال تا ۱۸ سال نباید فقط نگاه کنن به درس خوندن شاگردان، بلکه باید از عقایدشون آگاه بشن که مبادا خدای نکرده، از نظر ایشون، اونا به جانب درویشی گرایش و تمایل پیدا کنن و سر از شیطون‌پرستی و بی‌خدایی دربیارن. این حرف یه توهین آشکاره به عموم دراویش اهل طریقته که خودشون رو مسلمان و پیرو مکتب قرآن می‌دونن و اهل صلح و صفا و محبت با تمام شهروندان هستن و در عین حال، این مخالف آموزه‌های حقوق بشر و منشور حقوق شهروندیه که آقای دکتر حسن روحانی می‌خواستن که اون رو در جامعه پیاده کنن و آقای علی یونسی، دستیار ریاست جمهوری در امور اقوام و ادیان، می‌خواستن که اون رو به منصه اجرا دربیارن. این امر باعث شد که واقعاً دراویش دل‌آزرده شدن و یک نامه با امضای ۹ نفر از اساتید دانشگاه رو نوشتن و انتقاد کردن از این حرفی که این آقا زده بود و خواستار رسیدگی به وضعیت نابسامان و اسف ‌بار دراویش در زندان شدن که دست به اعتصاب غذا زدن و الان بیش از دو هفته از اعتصاب غذا و اعتصاب داروی این‌ها می‌گذره. اما متأسفانه فشار بیشتری روی این دراویش آوردن؛ این‌ها رو بین بندهای مختلف زندان‌های اوین و نظام شیراز پراکنده کردن، به خانواده‌هاشون خیلی فشار آوردن.`,
+    questions: [
+      { id: "3-1", question: "1.What is the primary criticism directed at Mahmoud Alavi’s remarks?",
+        keyphrases: ["این حرف یه توهین آشکاره به عموم دراویش اهل طریقته که خودشون رو مسلمان و پیرو مکتب قرآن می‌دونن"],
+        options: [
+          { answer: "They misinterpret Islamic theology", correct:false },
+          { answer: "They stigmatize a religious group and violate civic and human-rights principles", correct:true },
+          { answer: "They interfere with teachers’ professional autonomy", correct:false },
+          { answer: "They contradict prior intelligence policies", correct:false }
+        ]
+      },
+      { id: "3-2", question: "2. What does the speaker imply about the role expected of teachers according to Alavi’s speech?",
+        keyphrases: ["معلمین مدارس بین ۶ سال تا ۱۸ سال نباید فقط نگاه کنن به درس خوندن شاگردان، بلکه باید از عقایدشون آگاه بشن"],
+        options: [
+          { answer: "Teachers should monitor students’ ideological beliefs beyond academics", correct:true }, 
+          { answer: "Teachers should actively report students with weak academic performance", correct:false },
+          { answer: "Teachers should replace religious instruction with secular values", correct:false },
+          { answer: "Teachers should discourage all non-state religious practices", correct:false }
+        ]
+      },
+      { id: "3-3", question: "3. What consequence followed the letter signed by the nine university professors?",
+        keyphrases: ["اما متأسفانه فشار بیشتری روی این دراویش آوردن؛ این‌ها رو بین بندهای مختلف زندان‌های اوین و نظام شیراز پراکنده کردن، به خانواده‌هاشون خیلی فشار آوردن"],
+        options: [
+          { answer: "Conditions for imprisoned Dervishes worsened", correct:true }, 
+          { answer: "The prisoners were released after public pressure", correct:false },
+          { answer: "Government officials opened formal investigations", correct:false },
+          { answer: "Hunger strikes were immediately ended", correct:false }
+        ]
+      },
+      { id: "3-4", question: "4. What does the speaker suggest about the government’s response to the Dervishes’ protests and hunger strikes?",
+        keyphrases: ["این مخالف آموزه‌های حقوق بشر و منشور حقوق شهروندیه که آقای دکتر حسن روحانی می‌خواستن که اون رو در جامعه پیاده کنن"],
+        options: [
+          { answer: "It reflects an attempt at reconciliation through dialogue", correct:false },
+          { answer: "It contradicts earlier promises regarding citizens’ rights", correct:true },
+          { answer: "It prioritizes public order over prisoners’ health", correct:false },
+          { answer: "It is driven mainly by international pressure", correct:false }
+        ]
+      }
+    ]
+  }
+];
+
+const TOTAL_PAGES = listeningSets.length;
+
+/* ====================== ALL FUNCTIONS (unchanged except minor robustness) ====================== */
+function updateButtonText() {
+  el.nextBtn.textContent = currentPage === TOTAL_PAGES ? "Submit Challenge" : "Next Challenge";
+  el.nextBtn.classList.toggle("submit", currentPage === TOTAL_PAGES);
+}
+function stopAllAudio() {
+  abortAudio = true; audioSequenceActive = false;
+  [el.beepAudio, el.audioPlayer].forEach(a => { try { a.pause(); a.currentTime = 0; } catch(e){} });
+  el.audioPlayer.src = "";
+  el.audioRibbon.style.display = "none";
+  el.playBtn.style.display = "inline-block";
+}
+async function playAudioSequence() {
+  if (audioSequenceActive) return;
+  abortAudio = false; audioSequenceActive = true;
+  el.audioNote.style.display = "none";
+  el.audioRibbon.style.display = "block";
+  el.playBtn.style.display = "none";
+  el.audioPlayer.src = listeningSets[currentPage-1].audio;
+  el.audioPlayer.load();
+  const delay = ms => new Promise(r => setTimeout(r, ms));
+  const waitEnd = audio => new Promise(r => { audio.onended = () => { audio.currentTime = 0; r(); }; });
+  try {
+    await el.beepAudio.play(); await delay(1000);
+    await el.audioPlayer.play(); await waitEnd(el.audioPlayer);
+    await delay(1000); await el.beepAudio.play(); await delay(1000);
+    await el.audioPlayer.play(); await waitEnd(el.audioPlayer);
+  } catch(e) {}
+  if (!abortAudio) { audioSequenceActive = false; el.playBtn.style.display = "inline-block"; }
+}
+function enterListeningPhase() {
+  el.countdownBox.style.display = el.skipCountdownBtn.style.display = "none";
+  el.playBtn.style.display = "inline-block";
+  el.audioNote.style.display = "block";
+  el.studyInstruction.style.display = "none";
+  disableMCQs(false);
+}
+function startStudyTimerForPage(page) {
+  stopAllAudio();
+  const set = listeningSets[page-1];
+  timeLeft = studySecondsPerQuestion * set.questions.length;
+  el.countdownBox.textContent = `Study time — ${formatTime(timeLeft)}`;
+  el.countdownBox.style.display = el.skipCountdownBtn.style.display = "block";
+  el.playBtn.style.display = "none";
+  el.audioRibbon.style.display = "none";
+  el.audioNote.style.display = "none";
+  el.studyInstruction.style.display = "block";
+  disableMCQs(true);
+  clearInterval(countdownInterval);
+  countdownInterval = setInterval(() => {
+    timeLeft--;
+    if (timeLeft <= 0) { clearInterval(countdownInterval); enterListeningPhase(); }
+    else el.countdownBox.textContent = `Study time — ${formatTime(timeLeft)}`;
+  }, 1000);
+}
+function formatTime(s) { return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`; }
+function showSaved() {
+  el.savedNotify.classList.add("show");
+  clearTimeout(el.savedNotify._t);
+  el.savedNotify._t = setTimeout(() => el.savedNotify.classList.remove("show"), 1200);
+}
+function disableMCQs(flag) {
+  el.mcSection.querySelectorAll('input[type="radio"]').forEach(r => r.disabled = flag);
+}
+function renderMCQs(page) {
+  const set = listeningSets[page-1];
+  el.mcSection.innerHTML = "";
+  set.questions.forEach((q, qIdx) => {
+    const wrapper = document.createElement("div"); wrapper.className = "per-q";
+    const qEl = document.createElement("div"); qEl.className = "mc-question";
+    qEl.textContent = `${qIdx+1}. ${q.question}`;
+    wrapper.appendChild(qEl);
+    const box = document.createElement("div"); box.className = "mc-options-box";
+    q.options.forEach((opt, i) => {
+      const label = document.createElement("label"); label.className = "mc-option-wrapper";
+      const input = document.createElement("input");
+      input.type = "radio"; input.name = q.id;
+      if (userAnswers[q.id] === i) input.checked = true;
+      input.onchange = () => { userAnswers[q.id] = i; showSaved(); };
+      const letter = document.createElement("strong");
+      letter.textContent = letters[i] + ") ";
+      const text = document.createElement("span");
+      text.textContent = opt.answer;
+      label.appendChild(input); label.appendChild(letter); label.appendChild(text);
+      box.appendChild(label);
+    });
+    wrapper.appendChild(box);
+    el.mcSection.appendChild(wrapper);
+  });
+}
+
+/* FINAL HIGHLIGHTING (works perfectly now) */
+function showResultsPage() {
+  stopAllAudio();
+  document.getElementById("app").style.display = "none";
+  el.congratsOverlay.style.display = "none";
+  el.resultOverlay.style.display = "block";
+  let html = "", correct = 0, total = 0;
+
+  listeningSets.forEach((set, sIdx) => {
+    let transcribedText = set.transcription;
+
+    // Collect all highlights for this audio
+    const highlights = [];
+    set.questions.forEach((q, qIndex) => {
+      const colorClass = `evidence-${qIndex % 8}`;
+      const phrases = Array.isArray(q.keyphrases) ? q.keyphrases : [q.keyphrases];
+      phrases.forEach(phrase => {
+        const trimmed = phrase.trim();
+        if (trimmed) highlights.push({ phrase: trimmed, replacement: `<span class="${colorClass}">${trimmed}</span>` });
+      });
+    });
+
+    // Longest first to avoid partial matches
+    highlights.sort((a, b) => b.phrase.length - a.phrase.length);
+    highlights.forEach(hl => {
+      const escaped = hl.phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(escaped, 'g');
+      transcribedText = transcribedText.replace(regex, hl.replacement);
+    });
+
+    html += `<div class="result-box"><strong>Audio ${sIdx+1}</strong><div class="transcription">${transcribedText}</div></div>`;
+
+    set.questions.forEach((q, qIndex) => {
+      total++;
+      const userIdx = userAnswers[q.id];
+      const correctIdx = q.options.findIndex(o => o.correct);
+      if (userIdx === correctIdx) correct++;
+
+      const colorClass = `evidence-${qIndex % 8}`;
+      const badge = `<span style="background:#ff9800;color:white;padding:3px 9px;border-radius:5px;font-size:0.85rem;font-weight:bold;">Q${qIndex+1}</span>`;
+      html += `<div class="result-question">${badge} ${q.question}</div><div class="mc-options-box">`;
+      q.options.forEach((opt, i) => {
+        let cls = "result-option";
+        let extra = "";
+        if (i === correctIdx) cls += " correct";
+        if (i === userIdx && i !== correctIdx) cls += " wrong";
+        if (i === userIdx) extra = '<span class="your">Your answer → </span>';
+        html += `<div class="${cls}">${extra}<strong>${letters[i]})</strong> ${opt.answer}</div>`;
+      });
+      html += `</div>`;
+
+      const evidences = Array.isArray(q.keyphrases) ? q.keyphrases.map(p => p.trim()) : [];
+      if (evidences.length) {
+        html += `<div style="margin:10px 0;color:#d84315;font-size:0.98rem;">
+                   Evidence → <strong>${evidences.map(p => `“${p}”`).join(" , ")}</strong>
+                 </div>`;
+      }
+    });
+  });
+
+  const percent = Math.round((correct / total) * 100);
+  el.resultOverlay.innerHTML = `<div class="score-box">Final Score: ${correct}/${total} (${percent}%)</div>${html}`;
+}
+
+function initPage() {
+  stopAllAudio();
+  el.progressText.textContent = `${currentPage} out of ${TOTAL_PAGES}`;
+  el.setLabel.textContent = `Listening Question Set ${currentPage}`;
+  renderMCQs(currentPage);
+  startStudyTimerForPage(currentPage);
+  updateButtonText();
+}
+
+/* Event Listeners */
+el.skipCountdownBtn.onclick = () => { clearInterval(countdownInterval); timeLeft = 0; enterListeningPhase(); };
+el.playBtn.onclick = playAudioSequence;
+el.nextBtn.onclick = () => {
+  stopAllAudio();
+  if (currentPage < TOTAL_PAGES) { currentPage++; initPage(); }
+  else { el.congratsOverlay.style.display = "flex"; }
+};
+el.seeResultsBtn.onclick = () => { stopAllAudio(); el.congratsOverlay.style.display = "none"; showResultsPage(); };
+
+initPage();
+</script>
+</body>
+</html>
